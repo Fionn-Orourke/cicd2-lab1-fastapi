@@ -48,11 +48,6 @@ def add_user(new_user: UserCreate, db: Session = Depends(get_db)):
     return db_user 
 
 
-@app.get("/api/users") 
-def get_users(): 
-    return users 
- 
- 
 @app.get("/api/users/{user_id}") 
 def get_user(user_id: int): 
     for existing_user in users: 
