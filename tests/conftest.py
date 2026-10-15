@@ -9,19 +9,21 @@ from app.main import app
 from app.models import Base 
  
  
-TEST_DATABASE_URL = "sqlite+pysqlite://" 
- 
-test_engine = create_engine( 
-    TEST_DATABASE_URL, 
-    connect_args={"check_same_thread": False}, 
-    poolclass=StaticPool, 
-) 
- 
-TestingSessionLocal = sessionmaker( 
-    bind=test_engine, 
-    autoflush=False, 
-    expire_on_commit=False, 
+
+TEST_DATABASE_URL = "sqlite+pysqlite://"
+
+test_engine = create_engine(
+    TEST_DATABASE_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
 )
+
+TestingSessionLocal = sessionmaker(
+    bind=test_engine,
+    autoflush=False,
+    expire_on_commit=False,
+)
+
 
 
 def override_get_db(): 
@@ -39,6 +41,7 @@ def reset_database():
     Base.metadata.create_all(bind=test_engine) 
     yield 
     Base.metadata.drop_all(bind=test_engine) 
+    
 @pytest.fixture 
 def client(): 
     return TestClient(app);
