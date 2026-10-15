@@ -1,18 +1,16 @@
 import pytest 
 
 def user_payload( 
-    uid=1, 
     name="Paul", 
     email="paul@atu.ie", 
     age=25, 
-    student_id="S1234567", 
+    sid="S1234567", 
 ): 
     return { 
-        "user_id": uid, 
         "name": name, 
         "email": email, 
         "age": age, 
-        "student_id": student_id, 
+        "student_id": sid, 
     } 
  
  
@@ -91,3 +89,85 @@ def test_deleted_user_can_no_longer_be_retrieved(client):
     client.delete("/api/users/21") 
     response = client.get("/api/users/21") 
     assert response.status_code == 404 
+
+def test_duplicate_user_returns_409(client): 
+    client.post("/api/users", json=user_payload()) 
+ 
+    response = client.post( 
+        "/api/users", 
+        json=user_payload(), 
+    ) 
+ 
+    assert response.status_code == 409 
+    assert "already exists" in response.json()["detail"].lower()
+
+
+def test_get_users(client): 
+    client.post("/api/users", json=user_payload()) 
+ 
+    response = client.get("/api/users") 
+ 
+    assert response.status_code == 200 
+    assert len(response.json()) == 1 
+    assert response.json()[0]["student_id"] == "S1234567" 
+ 
+ 
+def test_get_user_by_id(client): 
+    created = client.post( 
+        "/api/users", 
+        json=user_payload(), 
+    ).json() 
+ 
+    user_id = created["id"] 
+    response = client.get(f"/api/users/{user_id}") 
+ 
+    assert response.status_code == 200 
+    assert response.json()["email"] == "paul@atu.ie" 
+ 
+ 
+def test_get_missing_user_returns_404(client): 
+    response = client.get("/api/users/999") 
+ 
+    assert response.status_code == 404 
+    assert "not found" in response.json()["detail"].lower()
+
+
+def test_delete_user(client): 
+    created = client.post( 
+        "/api/users", 
+        json=user_payload(), 
+    ).json() 
+ 
+    user_id = created["id"] 
+ 
+    response = client.delete(f"/api/users/{user_id}") 
+    assert response.status_code == 204 
+ 
+    response = client.get(f"/api/users/{user_id}") 
+    assert response.status_code == 404 
+ 
+ 
+def test_delete_missing_user_returns_404(client): 
+    response = client.delete("/api/users/999") 
+ 
+    assert response.status_code == 404
+
+import pytest 
+ 
+ 
+@pytest.mark.parametrize( 
+    "bad_sid", 
+    [ 
+        "BAD123", 
+        "s1234567", 
+        "S123", 
+        "S12345678", 
+    ], 
+) 
+def test_invalid_student_id_returns_422(client, bad_sid): 
+    response = client.post( 
+        "/api/users", 
+        json=user_payload(sid=bad_sid), 
+    ) 
+ 
+    assert response.status_code == 422
