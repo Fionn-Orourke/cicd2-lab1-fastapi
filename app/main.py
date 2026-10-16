@@ -1,4 +1,4 @@
-from fastapi import Depends, FastAPI, HTTPException, status 
+from fastapi import Depends, FastAPI, HTTPException, Response, status
 from sqlalchemy.exc import IntegrityError 
 from sqlalchemy.orm import Session 
 from sqlalchemy import select 
@@ -13,7 +13,7 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Lab 3 -  FastAPI SQLAlchemy User API") 
  
-users: list[UserCreate] = [] 
+
  
  
 @app.get("/health") 
@@ -47,8 +47,6 @@ def add_user(new_user: UserCreate, db: Session = Depends(get_db)):
  
     return db_user 
 
-
-@app.get("/api/users/{user_id}") 
 def get_user(user_id: int): 
     for existing_user in users: 
         if existing_user.user_id == user_id: 
@@ -85,7 +83,7 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 
 
 
-@app.delete("/api/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT) 
+
 def delete_user(user_id: int): 
     # Use enumerate so we can find the user and remove it by index. 
     for index, existing_user in enumerate(users): 
@@ -97,18 +95,6 @@ def delete_user(user_id: int):
         detail="User not found", 
     ) 
 
-
-@app.delete("/api/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT) 
-def delete_user(user_id: int): 
-    # Use enumerate so we can find the user and remove it by index. 
-    for index, existing_user in enumerate(users): 
-        if existing_user.user_id == user_id: 
-            users.pop(index) 
-            return Response(status_code=status.HTTP_204_NO_CONTENT) 
-    raise HTTPException( 
-        status_code=status.HTTP_404_NOT_FOUND, 
-        detail="User not found", 
-    )
 
 
 
